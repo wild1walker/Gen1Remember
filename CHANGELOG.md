@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.1
+
+- **The REMEMBER popup has no heading.** The row you pressed to open it already
+  said REMEMBER and the box comes up over that row, so a title on the frame
+  repeated the word back at you — and the vanilla screen this popup stands in
+  for, the forget list in `MoveLearnMenu`, has no heading either: it is a
+  framed column of move names and nothing else.
+- It costs no rows either way, because `Menu` writes a title into the top
+  border it was going to draw anyway. The frame is the same size it was; there
+  is just no word on it. The suite asserts both — no title, and `th` still
+  exactly its rows plus its border.
+
 ## 1.0.0
 
 - **A POKéMON can be taught a move it has forgotten.** Gen 1 has no move

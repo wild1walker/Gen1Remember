@@ -193,6 +193,12 @@ do
   T.check(menu.items[1].label:find("L1", 1, true) ~= nil,
           "and the level it comes in at")
   T.check(menu.tx + menu.tw <= 20, "and the frame stays on screen")
+  -- no heading: the row that opened this already said REMEMBER, and the
+  -- vanilla screen it stands in for -- MoveLearnMenu's forget list -- is a
+  -- framed column of move names and nothing else
+  T.eq(menu.title, nil, "and carries no heading on the frame")
+  T.eq(menu.th, #menu.items * 2 + 2,
+       "so the frame is its rows plus its border, and nothing for a title")
   -- it draws without throwing, which is the whole of what a draw test can say
   -- about a screen with no framebuffer to read back
   T.check(pcall(function() menu:draw() end), "and it draws")

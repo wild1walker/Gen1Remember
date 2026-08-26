@@ -1,0 +1,88 @@
+name: Test
+
+# Runs the mod's own suite against a real Gen1Recomp checkout, headlessly and
+# without a ROM: tests/modkit loads this mod through the production Loader and
+# merges it into the ROM-free fixture dataset, so a green run here means the
+# mod really loads and its screens really build.
+#
+# Gen1BillsBox is checked out beside it because the box half of this mod is a
+# row on a popup that mod owns. The seam is somebody else's export and a stub
+# of it would only prove this mod can call a stub, so box_test.lua loads both
+# mods together -- and skips itself, rather than failing, when Gen1BillsBox is
+# not there.
+#
+# Deliberately NOT a gate on release.yml. A release is cut from a push to main
+# and this job depends on two other repositories' layouts, so wiring it in
+# front of the release would mean an upstream rename could block shipping a
+# fix. It runs beside the release instead, and a red run is a signal to yank
+# rather than a lock on the button.
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - '**.md'
+      - 'mod.card'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the mod
+        uses: actions/checkout@v4
+        with:
+          path: mod
+
+      - name: Checkout Gen1Recomp
+        uses: actions/checkout@v4
+        with:
+          repository: bryanthaboi/gen1recomp
+          path: engine
+          # the suite reads src/, tests/ and the fixture dataset at one commit;
+          # no history is needed and the tree is large
+          fetch-depth: 1
+
+      - name: Checkout Gen1BillsBox
+        uses: actions/checkout@v4
+        with:
+          repository: wild1walker/Gen1BillsBox
+          path: box
+          fetch-depth: 1
+
+      - name: Install LuaJIT
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y luajit
+
+      - name: Run the suite
+        run: |
+          set -euo pipefail
+          # the harness resolves a mod by name under mods/, so each checkout is
+          # placed where a real install would sit rather than pointed at
+          mkdir -p engine/mods/Gen1Remember engine/mods/Gen1BillsBox
+          cp -r mod/. engine/mods/Gen1Remember/
+          cp -r box/. engine/mods/Gen1BillsBox/
+          rm -rf engine/mods/Gen1Remember/.git engine/mods/Gen1Remember/.github
+          rm -rf engine/mods/Gen1BillsBox/.git engine/mods/Gen1BillsBox/.github
+          cd engine
+          luajit mods/Gen1Remember/tests/gen1remember_test.lua
+          luajit mods/Gen1Remember/tests/box_test.lua
+
+      - name: modkit validate and lint
+        run: |
+          set -euo pipefail
+          cd engine
+          # No --base imported: that folds against the full vanilla id space,
+          # which lives in the ROM-derived data/generated/ tree a checkout does
+          # not carry and CI must not build. The rules it would add are the
+          # ones that can only be decided against real Red content; everything
+          # else validates here.
+          python3 tools/modkit.py validate mods/Gen1Remember
+          python3 tools/modkit.py lint mods/Gen1Remember

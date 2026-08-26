@@ -1,0 +1,40 @@
+-- Sharing metadata: read by tooling and the mod manager's detail pane.
+return {
+  summary = "A POKeMON can be taught a move it has forgotten, from the popup "
+    .. "you already open on it.",
+  author = "wild1walker",
+  tags = { "ui", "quality-of-life", "moves", "party" },
+  compat = { engine = ">=0.0.0-0 <2.0.0", modApi = 2, games = { "gen1" } },
+  differences = {
+    changed = {
+      "the party menu's per-POKeMON popup has a REMEMBER row under STATS and SWITCH -- appended rather than inserted, because the order at the front of that list is load bearing (DisplayFieldMoveMonMenu indexes wFieldMoves with menu items 0..n-1, so the field moves have to stay at the top)",
+      "with Gen1BillsBox installed, its box popup has the same row, between that screen's own verbs and CANCEL",
+    },
+    added = {
+      "a REMEMBER popup listing every level-up move the POKeMON should already have had at the level it has reached and does not know now, each row naming the move and the level it comes in at, ordered by that level",
+      "the moves a POKeMON learned in the forms it evolved out of count too -- the evolution chain is walked backwards, so a CHARIZARD can be given back the EMBER it learned as a CHARMANDER (PRE-EVO MOVES)",
+      "the four-move case is the engine's own MoveLearnMenu: the 'delete an older move?' prompt, the forget list, the HM refusal and the '1, 2 and... Poof!' pages, reached through Screens.push so a mod that replaced that screen is the one that answers",
+      "a free move slot is filled directly instead, with LearnedMove1Text and the jingle riding the box -- the same three lines the bag's TM path uses, so one event sounds the same however it was started",
+      "PARTY REMEMBER, BOX REMEMBER, PRE-EVO MOVES and HIDE WHEN EMPTY, in the mod manager",
+      "pool(), chain(), any(), open(), teach() and available() on mod.exports, so another mod can ask what a POKeMON has forgotten without opening a screen",
+    },
+    known = {
+      "the pool is DERIVED from the learnset rather than recorded: Gen 1 keeps no move history -- a save records the four moves a POKeMON has and not one byte about what it used to know -- so 'the moves it has forgotten' cannot be read back and has to be worked out. What it offers is exactly the set Pokemon.movesAtLevel threw away on the way up, which is what a player means by forgotten",
+      "the upside of deriving it is that nothing is written to the save and nothing is read from it: a POKeMON caught before this mod was installed answers exactly the same as one caught after, and a save loses nothing by adding the mod or removing it again",
+      "the downside is that a TM move a POKeMON learned and then overwrote is NOT offered back, because nothing records that it ever had it. That is also the call this mod would make with a record available: a machine move is bought rather than forgotten, the player still has the TM or knowingly spent it, and handing those back free would quietly rewrite what a TM costs",
+      "a pre-evolution's move is gated on the mon's CURRENT level, not on the level it evolved at -- so a form that evolved early can still be given a move its pre-evolution learns later. The alternative needs the level a POKeMON evolved at, which the save does not carry either",
+      "not offered in battle. The submenu there is SWITCH / STATS / CANCEL and the ui.party.submenu hook carries ctx.battle to say so; a move learned mid-turn is a mechanic rather than a convenience",
+      "HIDE WHEN EMPTY is on by default, so a POKeMON with nothing to remember carries no row at all. Off leaves the row in place and has it say so instead, which keeps the popup the same shape on every POKeMON",
+      "the box row needs Gen1BillsBox 1.2.0 or newer, which is where that popup grew its extension point. Without it the party row is the whole mod and BOX REMEMBER turns nothing off -- an inert toggle beats one that appears and disappears with another mod",
+      "the vanilla Bill's PC popup (src/ui/BoxMenu.lua) has no seam and no hook on it, so it does not get the row. Gen1BillsBox replaces that screen anyway, which is where the box half of this mod lives",
+      "the popup is a Menu rather than a screen of its own: Menu already has the blinking cursor, the wrap, the scroll window and the B-to-close every vanilla popup has, and it grows its frame to the widest label so a long or translated move name does not overflow. A hand-rolled list would be a second implementation of all of that, one that drifts",
+      "a move a learnset names but the dataset does not carry is skipped rather than offered, because it would draw as a blank row and teach a slot the battle engine cannot resolve",
+      "teaching a move the POKeMON already knows is refused rather than duplicated: the battle engine indexes moves by slot, and two slots naming one move is a state no vanilla path can produce",
+      "a cycle in the evolution table -- a content mod's mistake -- terminates the chain walk rather than hanging the party menu: the walk is breadth-first with a visited set and every species is reached once",
+    },
+  },
+  credits = {
+    { who = "pret", for_ = "the pokered disassembly the learn-move flow and its text are read out of" },
+    { who = "bryanthaboi", for_ = "Gen1Recomp, and the ui.party.submenu hook this mod is a row on" },
+  },
+}

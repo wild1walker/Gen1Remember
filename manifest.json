@@ -1,0 +1,24 @@
+{
+  "id": "Gen1Remember",
+  "name": "Gen1Remember",
+  "version": "1.0.0",
+  "api": 2,
+  "games": [
+    "gen1"
+  ],
+  "entry": "main.lua",
+  "profile": "content",
+  "category": "UI",
+  "game_version": ">=0.0.0-0 <2.0.0",
+  "priority": 1200,
+  "dependencies": [],
+  "optional_dependencies": [
+    "Gen1BillsBox"
+  ],
+  "conflicts": [],
+  "permissions": [
+    "engine_internals"
+  ],
+  "description": "A POKeMON can be taught a move it has forgotten. Gen 1 has no move reminder: a move that scrolled off the top of the four slots on the way up is gone for the rest of the save, and the only thing the cartridge offers back is a TM you have to own. This adds a REMEMBER row to the popup you already open on a POKeMON -- the party menu's, and the box's with Gen1BillsBox installed -- listing every level-up move it should already have had at the level it has reached, and teaching the one you pick. The moves it learned as a CHARMANDER count for the CHARIZARD it became, because the chain is walked backwards; TM and HM moves deliberately do not, because a machine move is bought rather than forgotten. Nothing is written to the save and nothing is read from it: the list is derived from the learnset, so a POKeMON caught before this mod was installed answers exactly the same as one caught after.",
+  "github": "wild1walker/Gen1Remember"
+}

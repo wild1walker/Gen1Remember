@@ -1,0 +1,3 @@
+# Exact relative paths; dot-directories (.git, .github) are skipped already.
+tests/gen1remember_test.lua
+tests/box_test.lua

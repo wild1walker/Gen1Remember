@@ -192,7 +192,27 @@ do
           "the row names the move")
   T.check(menu.items[1].label:find("L1", 1, true) ~= nil,
           "and the level it comes in at")
-  T.check(menu.tx + menu.tw <= 20, "and the frame stays on screen")
+  -- ------- where the frame sits
+  --
+  -- "on screen" was the old assertion here and it was too weak to catch what
+  -- shipped: Menu grows tw to the widest label and then NUDGES tx left to
+  -- keep the frame on screen (src/ui/Menu.lua:24-35), so a frame sitting on
+  -- the party's sprite column passes "on screen" with room to spare.  What
+  -- matters is where the edges are:
+  --
+  --   * flush left AND right, so the party menu's own bottom message --
+  --     drawn underneath by PartyMenu:draw, which this popup does not
+  --     replace -- is covered rather than showing past both sides of a
+  --     narrow box ("Cho" on the left, "N." on the right)
+  --   * flush to the bottom, so the POKéMON it is about stays above it
+  --   * and reaching row 12, which is where that message box starts
+  --     (Font.drawBox(0, 12, 20, 6) in PartyMenu:draw)
+  T.eq(menu.tx, 0, "the frame is flush to the left edge")
+  T.eq(menu.tx + menu.tw, 20, "and to the right edge")
+  T.eq(menu.ty + menu.th, 18, "and hangs off the bottom")
+  T.check(menu.ty <= 12,
+          "so it covers the party menu's own message box rather than "
+          .. "leaving it showing around the frame")
   -- no heading: the row that opened this already said REMEMBER, and the
   -- vanilla screen it stands in for -- MoveLearnMenu's forget list -- is a
   -- framed column of move names and nothing else
@@ -202,6 +222,43 @@ do
   -- it draws without throwing, which is the whole of what a draw test can say
   -- about a screen with no framebuffer to read back
   T.check(pcall(function() menu:draw() end), "and it draws")
+end
+
+-- ------- the longest name the cart has
+--
+-- POISONPOWDER and THUNDERSHOCK are twelve characters, and with a level
+-- beside them a row is sixteen -- three more than the old twelve-tile frame
+-- could hold, which is exactly how the frame ended up on the sprite column.
+-- The fixture has no name that long, so one is added here: this asserts the
+-- frame does not move for it, which is the property, not that the fixture
+-- happens to be short.
+do
+  Data.moves["FIX_POISONPOWDER"] = {
+    id = "FIX_POISONPOWDER", name = "POISONPOWDER", type = "GRASS",
+    accuracy = 75, effect = "NO_ADDITIONAL_EFFECT", power = 0,
+    index = 900, pp = 35,
+  }
+  local learnset = Data.pokemon["FIXMON_A"].learnset
+  -- level 19, not 9: the row is the name plus " L19", and it is the
+  -- two-digit level that makes it the full sixteen the real pools hit.
+  learnset[#learnset + 1] = { level = 19, move = "FIX_POISONPOWDER" }
+
+  local g = fakeGame()
+  exports.open(g, monB(20))
+  local menu = g.stack:top()
+  local widest = 0
+  for _, item in ipairs(menu.items) do
+    if #item.label > widest then widest = #item.label end
+  end
+  T.check(widest >= 16, "the pool really does carry a full-width row ("
+          .. tostring(widest) .. " characters)")
+  T.eq(menu.tx, 0, "and the frame is still flush left")
+  T.eq(menu.tx + menu.tw, 20, "still flush right")
+  T.eq(menu.ty + menu.th, 18, "and still hard against the bottom")
+  T.check(pcall(function() menu:draw() end), "and it still draws")
+
+  learnset[#learnset] = nil
+  Data.moves["FIX_POISONPOWDER"] = nil
 end
 
 do

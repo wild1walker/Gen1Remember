@@ -1,7 +1,7 @@
 {
   "id": "Gen1Remember",
   "name": "Gen1Remember",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "api": 2,
   "games": [
     "gen1"

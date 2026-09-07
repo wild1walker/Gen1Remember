@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.0.2
+
+- **The REMEMBER popup sits where it should on the party menu.** Reported with
+  screenshots showing three different wrong shapes, all from one pair of
+  numbers: the frame opened at `tx = 4, tw = 12`, and `Menu` grows `tw` to the
+  widest label and then nudges `tx` left to keep the frame on screen.
+
+  So a short pool (GLARE L24) left the frame narrower than the party menu's own
+  bottom message, which this popup does not replace and which is drawn
+  underneath it — the message showed past **both** sides, "Cho" on the left and
+  "N." on the right. And a long one (POISONPOWDER L22) needed nineteen tiles,
+  which pushed `tx` from 4 to 1 and dropped the frame onto the party's **sprite
+  column**.
+
+  It is full width now and hard against the bottom edge — `tx = 0, tw = 20` —
+  which covers that message completely and cannot be nudged anywhere. Both are
+  the cart's own shapes for the bottom of this screen: `Font.drawBox(0, 12, 20,
+  6)` is the party menu's message box and `Font.drawBox(4, 7, 16, 6)` is
+  MoveLearnMenu's forget list, the screen this popup stands in for. The
+  interior is seventeen columns, so the longest name in the cart's dataset fits
+  beside its level and the frame never grows.
+
+  The test that covered this asked only that the frame stayed *on screen*,
+  which a frame sitting on the sprite column does. It now asserts all four
+  edges, and against a pool carrying a full-width row rather than only the
+  fixture's short names.
+
 ## 1.0.1
 
 - **The REMEMBER popup has no heading.** The row you pressed to open it already
